@@ -1,0 +1,25 @@
+@import "tailwindcss";
+/* slick carousel default styles */
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+select {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  background-color: #333a5c;
+  color: white;
+}
+
+.login-con {
+  background-color: rgba(255, 0, 0, 0.426);
+  padding: 6px 20px;
+  border-radius: 18px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+.login-con:hover {
+  background-color: rgba(255, 0, 0, 0.726);
+  cursor: pointer;
+}
