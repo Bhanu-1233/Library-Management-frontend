@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/useAuth.js";
 import api from "../components/Api.jsx";
@@ -12,25 +11,41 @@ const BookDetails = () => {
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   // 🔹 AI-related state
   const [aiLoading, setAiLoading] = useState(false);
   const [aiText, setAiText] = useState("");
   const [aiError, setAiError] = useState("");
 
-  const backendURL = import.meta.env.VITE_BACKEND_API_URL;
   const razorKey = import.meta.env.VITE_RAZORPAY_KEY;
 
-  // 🔹 Fetch Book details
+  // 🔹 Fetch Book details (using shared api instance)
   const fetchBook = async () => {
     try {
-      const res = await axios.get(`${backendURL}/book/${id}`, {
-        withCredentials: true,
-      });
+      setLoading(true);
+      setLoadError("");
+
+      const res = await api.get(`/book/${id}`);
       setBook(res.data.book);
     } catch (error) {
+      console.error(
+        "❌ Error loading book details:",
+        error?.response?.data || error
+      );
+
+      const msgFromBackend =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Failed to load book details";
+
+      setLoadError(msgFromBackend);
       toast.error("Failed to load book details");
-      console.error(error);
+
+      // If unauthorized, send user to login
+      if (error?.response?.status === 401) {
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }
@@ -38,6 +53,7 @@ const BookDetails = () => {
 
   useEffect(() => {
     fetchBook();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // 🔹 Borrow Book
@@ -80,7 +96,6 @@ const BookDetails = () => {
     } catch (error) {
       console.error("AI insights error:", error?.response?.data || error);
 
-      // 👇 Show the real backend message if available
       const msgFromBackend =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
@@ -152,12 +167,18 @@ const BookDetails = () => {
       </div>
     );
 
-  if (!book)
+  if (!book) {
     return (
-      <div className="text-center text-red-500 mt-10 text-lg">
-        Book not found!
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 mt-24">
+        <p className="text-red-500 text-lg font-semibold mb-2">
+          Book not found!
+        </p>
+        {loadError && (
+          <p className="text-gray-600 text-sm max-w-md">{loadError}</p>
+        )}
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center p-4 mt-24">
